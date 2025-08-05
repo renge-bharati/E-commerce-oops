@@ -1,0 +1,98 @@
+// === Products ===
+abstract class Product {
+    String id, name, description;
+    double price;
+    Product(String id, String name, String desc, double price) { … }
+    public double getPrice() { return price; }
+    public abstract double getShippingCost();
+}
+
+class PhysicalProduct extends Product {
+    double weight;
+    PhysicalProduct(...) { super(...); this.weight = weight; }
+    @Override
+    public double getShippingCost() { return 5.0 + 0.5 * weight; }
+}
+
+class DigitalProduct extends Product {
+    DigitalProduct(...) { super(...); }
+    @Override
+    public double getShippingCost() { return 0.0; }
+}
+
+// === Inventory ===
+class Inventory {
+    int stock;
+    Inventory(int stock) { this.stock = stock; }
+    int getStock() { return stock; }
+    void decreaseStock(int qty) {
+        if (stock >= qty) stock -= qty;
+        else throw new RuntimeException("Not enough stock");
+    }
+}
+
+// === User & ShoppingCart ===
+class User {
+    String name, address;
+    ShoppingCart cart = new ShoppingCart();
+    User(String name, String address) { … }
+}
+
+class OrderItem {
+    Product product;
+    int quantity;
+    OrderItem(Product p, int q) { … }
+}
+
+class ShoppingCart {
+    List<OrderItem> items = new ArrayList<>();
+    void addItem(Product p, int qty) {
+        // check inventory
+        p.inventory.decreaseStock(qty);
+        items.add(new OrderItem(p, qty));
+    }
+    double calculateTotal() {
+        return items.stream().mapToDouble(i -> i.product.getPrice() * i.quantity).sum();
+    }
+}
+
+// === Payment ===
+abstract class Payment {
+    abstract void processPayment(double amount);
+}
+
+class CreditCardPayment extends Payment {
+    void processPayment(double amount) {
+        System.out.println("Processing credit card payment of $" + amount);
+        // integration logic here
+    }
+}
+
+class PayPalPayment extends Payment {
+    void processPayment(double amount) {
+        System.out.println("Processing PayPal payment of $" + amount);
+        // integration logic here
+    }
+}
+
+// === Orders ===
+class Order {
+    User customer;
+    List<OrderItem> items;
+    Payment payment;
+    String status = "Pending";
+    LocalDateTime orderDate = LocalDateTime.now();
+
+    Order(User u, List<OrderItem> items, Payment pay) {
+        this.customer = u;
+        this.items = items;
+        this.payment = pay;
+    }
+
+    double calculateTotal() { … same as cart … }
+
+    void processPayment() {
+        payment.processPayment(calculateTotal());
+        status = "Processed";
+    }
+}
